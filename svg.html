@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.12/svg.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.12/svg.min.js"></script>
+</head>
+<style>
+    .canvas {
+        background: rgba(0, 0, 0, 0.8);
+        height: 500px;
+    }
+
+</style>
+<body>
+    <div class="canvas">
+            <svg id="drawing"></svg>
+    </div>
+    <div>
+        <button onclick="drawSvg.drawPolyline()">线段</button>
+        <button onclick="drawSvg.drawCircle()">画圆</button>
+        <button onclick="drawSvg.drawPolygon()">多边形</button>
+    </div>
+    <div>双击取消</div>
+</body>
+<script>
+
+    //   draw.size('100%', '100%');
+        // var nested = draw.nested()
+        // var rect = draw.rect(200, 200)
+      function drawSvg() {}
+      drawSvg.init = function(option) {
+        var _this = this;
+        this.types = ['line', 'ci']
+        this.draw = new SVG('#drawing');
+        this.draw.size('100%', '100%');
+        // console.log(draw)
+        // this.draw.rect(100,100).animate().fill('#f03').move(100,100)
+        // var group = this.draw.group()
+        // group.path('M10,20L30,40')
+        this.canvas = document.querySelector('.canvas');
+        this.canvas.addEventListener('dblclick', function() {
+            _this.removeEvent()
+        })
+        if(option&&option.stroke) {
+            this.stroke = option.stroke
+        } else {
+            this.stroke = {
+                    width: 1,
+                    color: 'red'
+            }
+        }
+        
+        
+    }
+    drawSvg.removeEvent = function () {
+        this.canvas.removeEventListener('mousedown')
+        this.canvas.removeEventListener('mousemove')
+        this.canvas.onmousemove = null;
+        this.canvas.removeEventListener('mouseout')
+        // this.draw.stop()
+    }
+    drawSvg.removeEvent = function () {
+        this.polyline = null
+        this.circle = null
+        this.polygon = null
+        this.canvas.onmousemove = null;
+        this.canvas.removeEventListener('mousedown', this.handleEvent)
+        this.canvas.removeEventListener('mouseout', this.handleEvent)
+    }
+    drawSvg.drawPolyline = function(type) {
+        var _this = this
+        
+        this.PointArr = []
+        this.handleEvent = function(e) {
+            var line = null
+            var x = e.clientX;
+            var y = e.clientY;
+            _this.PointArr.push([x,y])
+           if(_this.PointArr.length == 1) {
+            _this.polyline = _this.draw.polyline([[x,y]]);
+            _this.polyline.fill('none').stroke(_this.stroke);
+
+           } else {
+            _this.polyline.plot(_this.PointArr);
+           }
+           console.log(_this.PointArr,_this.polyline)
+           _this.canvas.onmousemove = function(e) {
+                e = e || event
+                var x = e.clientX;
+                var y = e.clientY;
+                var arr = JSON.parse(JSON.stringify(_this.PointArr));
+                // var arr = _this.PointArr[_this.PointArr.length - 1]
+                // if(line) {
+                //     line.clear()
+                // }
+                // line = _this.draw.line(arr[0], arr[1], x, y).stroke({ width: 2,color: 'red'})
+
+                // console.log(line)
+                arr[arr.length] = [x,y]
+                console.log(arr.length , _this.PointArr.length)
+                if(arr.length > _this.PointArr.length) {
+                    // arr.pop()
+                }
+                _this.polyline.plot(arr);
+                
+                
+           }
+        }
+        this.removeEvent()
+        this.canvas.addEventListener('mousedown', this.handleEvent)
+        this.canvas.addEventListener('mouseout', function() {
+            // this.canvas.removeEventListener()
+        })
+    }
+    
+    drawSvg.drawPolygon = function(type) {
+        var _this = this
+        
+        this.PointArr = []
+        this.handleEvent = function(e) {
+            var line = null
+            var x = e.clientX;
+            var y = e.clientY;
+            _this.PointArr.push([x,y])
+           if(_this.PointArr.length == 1) {
+            _this.polyline = _this.draw.polyline([[x,y]]);
+            _this.polyline.fill('none').stroke(_this.stroke);
+            _this.polygon = _this.draw.polygon([]).fill("rgba(152,245,255,0.8)").stroke(_this.stroke);
+
+           } else {
+            _this.polyline.clear()
+            _this.polygon.plot(_this.PointArr);
+           }
+           _this.canvas.onmousemove = function(e) {
+                e = e || event
+                var x = e.clientX;
+                var y = e.clientY;
+                var arr = JSON.parse(JSON.stringify(_this.PointArr));
+                arr[arr.length] = [x,y]
+                if(_this.PointArr.length == 1) {
+                    _this.polyline.plot(arr)
+                } else {
+                    _this.polyline.clear()
+                    _this.polyline.plot([])
+                }
+                _this.polygon.plot(arr);
+                
+                
+           }
+        }
+        this.removeEvent()
+        this.canvas.addEventListener('mousedown', this.handleEvent)
+        this.canvas.addEventListener('mouseout', function() {
+            // this.canvas.removeEventListener()
+        })
+    }
+    
+    drawSvg.drawCircle =function (size) {
+        console.log('drawCircle')
+        size || (size = 100);
+        var _this = this
+        var x = 0;
+        var y = 0;
+        this.PointArr = []
+        var clickCount =0;
+        this.handleEvent = function(e) {
+            if(!x && !y) {
+                x = e.clientX;
+                y = e.clientY;
+                clickCount++
+            } else {
+                var x1 = e.clientX;
+                var y1 = e.clientY;
+                var radiusX = Math.abs(x-x1)
+                var radiusY = Math.abs(y-y1)
+                var radius = Math.sqrt(radiusX* radiusX + radiusY*radiusY)
+                console.log(radius)
+                _this.circle.radius(radius)
+                x= 0;
+                y= 0;
+                clickCount = 0;
+            }
+            _this.circle = _this.draw.circle(1)
+            _this.circle.move(x, y).fill('none').stroke(_this.stroke);
+        
+           _this.canvas.onmousemove = function(e) {
+                e = e || event
+                var x1 = e.clientX;
+                var y1 = e.clientY;
+                var radiusX = Math.abs(x-x1)
+                var radiusY = Math.abs(y-y1)
+                var radius = Math.sqrt(radiusX* radiusX + radiusY*radiusY)
+                if(clickCount===1) {
+                    _this.circle.radius(radius)
+                }
+                
+           }
+        }
+        this.removeEvent()
+        this.canvas.addEventListener('mousedown', this.handleEvent
+        )
+        this.canvas.addEventListener('mouseout', function() {
+            // this.canvas.removeEventListener()
+        })
+        
+
+    }
+    drawSvg.init()
+    
+</script>
+</html>
